@@ -157,8 +157,12 @@ class Story {
       }
     }
 
-    final author = json['author'] as String? ?? json['authorName'] as String? ?? 'Unknown author';
-    final authorName = (json['authorName'] as String?)?.trim().isNotEmpty == true
+    final author =
+        json['author'] as String? ??
+        json['authorName'] as String? ??
+        'Unknown author';
+    final authorName =
+        (json['authorName'] as String?)?.trim().isNotEmpty == true
         ? json['authorName'] as String
         : author;
     final authorId = json['authorId'] as String? ?? '';

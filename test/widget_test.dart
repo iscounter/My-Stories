@@ -61,8 +61,11 @@ void main() {
       author: 'Reader',
       category: 'Personal',
       excerpt: 'A useful excerpt.',
-      content: 'This is a complete story body with enough words to pass validation.',
-      paragraphs: const ['This is a complete story body with enough words to pass validation.'],
+      content:
+          'This is a complete story body with enough words to pass validation.',
+      paragraphs: const [
+        'This is a complete story body with enough words to pass validation.',
+      ],
       readingMinutes: 2,
       createdAt: now,
       updatedAt: now,

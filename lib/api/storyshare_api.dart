@@ -3,16 +3,14 @@ import 'package:http/http.dart' as http;
 
 class StoryShareApi {
   StoryShareApi({String? baseUrl, String? authToken})
-      : _baseUrl = baseUrl ?? 'https://zerotech.alwaysdata.net/app/webstore',
-        _authToken = authToken;
+    : _baseUrl = baseUrl ?? 'https://zerotech.alwaysdata.net/app/webstore',
+      _authToken = authToken;
 
   final String _baseUrl;
   final String? _authToken;
 
   Map<String, String> get _headers {
-    final headers = <String, String>{
-      'Content-Type': 'application/json',
-    };
+    final headers = <String, String>{'Content-Type': 'application/json'};
     final token = _authToken ?? '';
     if (token.isNotEmpty) {
       headers['Authorization'] = 'Bearer $token';
@@ -27,19 +25,32 @@ class StoryShareApi {
     Map<String, dynamic>? body,
     Map<String, String>? query,
   }) async {
-    final uri = Uri.parse(_baseUrl + path)
-        .replace(queryParameters: query ?? const {});
+    final uri = Uri.parse(
+      _baseUrl + path,
+    ).replace(queryParameters: query ?? const {});
 
     http.Response response;
     switch (method) {
       case 'POST':
-        response = await http.post(uri, headers: _headers, body: jsonEncode(body ?? {}));
+        response = await http.post(
+          uri,
+          headers: _headers,
+          body: jsonEncode(body ?? {}),
+        );
         break;
       case 'PUT':
-        response = await http.put(uri, headers: _headers, body: jsonEncode(body ?? {}));
+        response = await http.put(
+          uri,
+          headers: _headers,
+          body: jsonEncode(body ?? {}),
+        );
         break;
       case 'DELETE':
-        response = await http.delete(uri, headers: _headers, body: jsonEncode(body ?? {}));
+        response = await http.delete(
+          uri,
+          headers: _headers,
+          body: jsonEncode(body ?? {}),
+        );
         break;
       case 'GET':
       default:
@@ -54,7 +65,9 @@ class StoryShareApi {
       );
     }
 
-    final payload = jsonDecode(response.body.isNotEmpty ? response.body : '{}') as Map<String, dynamic>;
+    final payload =
+        jsonDecode(response.body.isNotEmpty ? response.body : '{}')
+            as Map<String, dynamic>;
     throw ApiException(
       statusCode: response.statusCode,
       message: payload['error'] ?? 'Request failed.',
@@ -90,10 +103,7 @@ class StoryShareApi {
       '/webstore/auth/login',
       (response) => jsonDecode(response.body) as Map<String, dynamic>,
       method: 'POST',
-      body: {
-        'email': email,
-        'password': password,
-      },
+      body: {'email': email, 'password': password},
     );
 
     return AuthResult.fromJson(result.data);
@@ -110,7 +120,9 @@ class StoryShareApi {
   Future<UserProfile> me() async {
     final result = await _request<Map<String, dynamic>>(
       '/webstore/auth/me',
-      (response) => (jsonDecode(response.body) as Map<String, dynamic>)['user'] as Map<String, dynamic>,
+      (response) =>
+          (jsonDecode(response.body) as Map<String, dynamic>)['user']
+              as Map<String, dynamic>,
       method: 'GET',
     );
     return UserProfile.fromJson(result.data);
@@ -148,7 +160,9 @@ class StoryShareApi {
   }) async {
     final result = await _request<Map<String, dynamic>>(
       '/webstore/stories',
-      (response) => (jsonDecode(response.body) as Map<String, dynamic>)['story'] as Map<String, dynamic>,
+      (response) =>
+          (jsonDecode(response.body) as Map<String, dynamic>)['story']
+              as Map<String, dynamic>,
       method: 'POST',
       body: {
         'title': title,
@@ -172,7 +186,9 @@ class StoryShareApi {
   }) async {
     final result = await _request<Map<String, dynamic>>(
       '/webstore/stories/$storyId',
-      (response) => (jsonDecode(response.body) as Map<String, dynamic>)['story'] as Map<String, dynamic>,
+      (response) =>
+          (jsonDecode(response.body) as Map<String, dynamic>)['story']
+              as Map<String, dynamic>,
       method: 'PUT',
       body: {
         if (title != null) 'title': title,
@@ -211,19 +227,24 @@ class StoryShareApi {
 
     final items = (result.data['comments'] as List?) ?? const [];
     return items
-        .map((e) => CommentApiModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) => CommentApiModel.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
-  Future<CommentApiModel> addComment(String storyId, {required String text, String? parentId}) async {
+  Future<CommentApiModel> addComment(
+    String storyId, {
+    required String text,
+    String? parentId,
+  }) async {
     final result = await _request<Map<String, dynamic>>(
       '/webstore/stories/$storyId/comments',
-      (response) => (jsonDecode(response.body) as Map<String, dynamic>)['comment'] as Map<String, dynamic>,
+      (response) =>
+          (jsonDecode(response.body) as Map<String, dynamic>)['comment']
+              as Map<String, dynamic>,
       method: 'POST',
-      body: {
-        'text': text,
-        if (parentId != null) 'parentId': parentId,
-      },
+      body: {'text': text, if (parentId != null) 'parentId': parentId},
     );
     return CommentApiModel.fromJson(result.data);
   }
@@ -236,7 +257,9 @@ class StoryShareApi {
     );
     final items = (result.data['bookmarks'] as List?) ?? const [];
     return items
-        .map((e) => BookmarkApiModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) => BookmarkApiModel.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
         .toList();
   }
 
@@ -275,7 +298,11 @@ class StoryShareApi {
     );
     final items = (result.data['notifications'] as List?) ?? const [];
     return items
-        .map((e) => NotificationApiModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+          (e) => NotificationApiModel.fromJson(
+            Map<String, dynamic>.from(e as Map),
+          ),
+        )
         .toList();
   }
 
@@ -336,17 +363,16 @@ class ApiException implements Exception {
 }
 
 class AuthResult {
-  AuthResult({
-    required this.user,
-    this.token,
-  });
+  AuthResult({required this.user, this.token});
 
   final UserProfile user;
   final String? token;
 
   factory AuthResult.fromJson(Map<String, dynamic> json) {
     return AuthResult(
-      user: UserProfile.fromJson(Map<String, dynamic>.from(json['user'] as Map)),
+      user: UserProfile.fromJson(
+        Map<String, dynamic>.from(json['user'] as Map),
+      ),
       token: json['user']?['token'] as String?,
     );
   }
@@ -390,8 +416,12 @@ class UserProfile {
       followerCount: (json['followerCount'] as num?)?.toInt() ?? 0,
       followingCount: (json['followingCount'] as num?)?.toInt() ?? 0,
       storyCount: (json['storyCount'] as num?)?.toInt() ?? 0,
-      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(json['createdAt'] as String? ?? '') ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(json['updatedAt'] as String? ?? '') ??
+          DateTime.now(),
     );
   }
 }
@@ -448,23 +478,50 @@ class StoryApiModel {
 
     return StoryApiModel(
       id: json['id'] as String? ?? '',
-      authorId: json['author_id'] as String? ?? json['authorId'] as String? ?? '',
-      authorName: json['author_name'] as String? ?? json['authorName'] as String? ?? 'Anonymous',
-      authorPhoto: json['author_photo'] as String? ?? json['authorPhoto'] as String?,
+      authorId:
+          json['author_id'] as String? ?? json['authorId'] as String? ?? '',
+      authorName:
+          json['author_name'] as String? ??
+          json['authorName'] as String? ??
+          'Anonymous',
+      authorPhoto:
+          json['author_photo'] as String? ?? json['authorPhoto'] as String?,
       isAnonymous: json['is_anonymous'] == 1 || json['isAnonymous'] == true,
       title: json['title'] as String? ?? '',
       body: json['body'] as String? ?? '',
       paragraphs: paragraphs,
       category: json['category'] as String? ?? 'General',
       tags: tags,
-      coverImageUrl: json['cover_image_url'] as String? ?? json['coverImageUrl'] as String?,
-      readingMinutes: (json['reading_minutes'] as num?)?.toInt() ?? (json['readingMinutes'] as num?)?.toInt() ?? 1,
-      likeCount: (json['like_count'] as num?)?.toInt() ?? (json['likeCount'] as num?)?.toInt() ?? 0,
-      commentCount: (json['comment_count'] as num?)?.toInt() ?? (json['commentCount'] as num?)?.toInt() ?? 0,
-      viewCount: (json['view_count'] as num?)?.toInt() ?? (json['viewCount'] as num?)?.toInt() ?? 0,
+      coverImageUrl:
+          json['cover_image_url'] as String? ??
+          json['coverImageUrl'] as String?,
+      readingMinutes:
+          (json['reading_minutes'] as num?)?.toInt() ??
+          (json['readingMinutes'] as num?)?.toInt() ??
+          1,
+      likeCount:
+          (json['like_count'] as num?)?.toInt() ??
+          (json['likeCount'] as num?)?.toInt() ??
+          0,
+      commentCount:
+          (json['comment_count'] as num?)?.toInt() ??
+          (json['commentCount'] as num?)?.toInt() ??
+          0,
+      viewCount:
+          (json['view_count'] as num?)?.toInt() ??
+          (json['viewCount'] as num?)?.toInt() ??
+          0,
       isPublished: json['is_published'] == 1 || json['isPublished'] == true,
-      createdAt: DateTime.tryParse(json['created_at'] as String? ?? json['createdAt'] as String? ?? '') ?? DateTime.now(),
-      updatedAt: DateTime.tryParse(json['updated_at'] as String? ?? json['updatedAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(
+            json['created_at'] as String? ?? json['createdAt'] as String? ?? '',
+          ) ??
+          DateTime.now(),
+      updatedAt:
+          DateTime.tryParse(
+            json['updated_at'] as String? ?? json['updatedAt'] as String? ?? '',
+          ) ??
+          DateTime.now(),
     );
   }
 }
@@ -512,13 +569,22 @@ class CommentApiModel {
     return CommentApiModel(
       id: json['id'] as String? ?? '',
       storyId: json['story_id'] as String? ?? json['storyId'] as String? ?? '',
-      authorId: json['author_id'] as String? ?? json['authorId'] as String? ?? '',
-      authorName: json['author_name'] as String? ?? json['authorName'] as String? ?? 'Anonymous',
-      authorPhoto: json['author_photo'] as String? ?? json['authorPhoto'] as String?,
+      authorId:
+          json['author_id'] as String? ?? json['authorId'] as String? ?? '',
+      authorName:
+          json['author_name'] as String? ??
+          json['authorName'] as String? ??
+          'Anonymous',
+      authorPhoto:
+          json['author_photo'] as String? ?? json['authorPhoto'] as String?,
       text: json['text'] as String? ?? '',
       parentId: json['parent_id'] as String? ?? json['parentId'] as String?,
       likeCount: (json['like_count'] as num?)?.toInt() ?? 0,
-      createdAt: DateTime.tryParse(json['created_at'] as String? ?? json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(
+            json['created_at'] as String? ?? json['createdAt'] as String? ?? '',
+          ) ??
+          DateTime.now(),
       isDeleted: json['is_deleted'] == 1 || json['isDeleted'] == true,
     );
   }
@@ -541,7 +607,11 @@ class BookmarkApiModel {
     return BookmarkApiModel(
       userId: json['user_id'] as String? ?? json['userId'] as String? ?? '',
       storyId: json['story_id'] as String? ?? json['storyId'] as String? ?? '',
-      savedAt: DateTime.tryParse(json['saved_at'] as String? ?? json['savedAt'] as String? ?? '') ?? DateTime.now(),
+      savedAt:
+          DateTime.tryParse(
+            json['saved_at'] as String? ?? json['savedAt'] as String? ?? '',
+          ) ??
+          DateTime.now(),
       title: json['title'] as String?,
     );
   }
@@ -580,7 +650,11 @@ class NotificationApiModel {
       storyId: json['story_id'] as String? ?? json['storyId'] as String?,
       commentId: json['comment_id'] as String? ?? json['commentId'] as String?,
       isRead: json['is_read'] == 1 || json['isRead'] == true,
-      createdAt: DateTime.tryParse(json['created_at'] as String? ?? json['createdAt'] as String? ?? '') ?? DateTime.now(),
+      createdAt:
+          DateTime.tryParse(
+            json['created_at'] as String? ?? json['createdAt'] as String? ?? '',
+          ) ??
+          DateTime.now(),
     );
   }
 }
