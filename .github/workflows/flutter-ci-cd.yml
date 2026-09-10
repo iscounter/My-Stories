@@ -61,7 +61,7 @@ jobs:
   build:
     name: Build ${{ matrix.name }}
     needs: validate
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' || matrix.platform == 'windows'
     strategy:
       fail-fast: false
       matrix:

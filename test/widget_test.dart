@@ -52,4 +52,43 @@ void main() {
     expect(loadedStory.title, story.title);
     expect(loadedStory.isFavorite, isFalse);
   });
+
+  test('Story supports social story fields and legacy compatibility', () {
+    final now = DateTime(2026, 9, 10, 12, 30);
+    final original = Story(
+      id: 'story-share-1',
+      title: 'A social story',
+      author: 'Reader',
+      category: 'Personal',
+      excerpt: 'A useful excerpt.',
+      content: 'This is a complete story body with enough words to pass validation.',
+      paragraphs: const ['This is a complete story body with enough words to pass validation.'],
+      readingMinutes: 2,
+      createdAt: now,
+      updatedAt: now,
+      authorId: 'user_123',
+      authorName: 'Reader',
+      authorPhoto: 'https://example.com/avatar.png',
+      isAnonymous: false,
+      tags: const ['growth', 'reflection'],
+      coverImageUrl: 'https://example.com/cover.png',
+      likeCount: 12,
+      commentCount: 3,
+      viewCount: 45,
+      isPublished: true,
+    );
+
+    final json = original.toJson();
+    final decoded = Story.fromJson(json);
+
+    expect(decoded.authorId, 'user_123');
+    expect(decoded.authorName, 'Reader');
+    expect(decoded.tags, ['growth', 'reflection']);
+    expect(decoded.likeCount, 12);
+    expect(decoded.commentCount, 3);
+    expect(decoded.viewCount, 45);
+    expect(decoded.isPublished, isTrue);
+    expect(decoded.coverImageUrl, 'https://example.com/cover.png');
+    expect(decoded.toJson()['authorId'], 'user_123');
+  });
 }

@@ -13,6 +13,16 @@ class Story {
     required this.readingMinutes,
     required this.createdAt,
     required this.updatedAt,
+    this.authorId = '',
+    this.authorName = '',
+    this.authorPhoto,
+    this.isAnonymous = false,
+    this.tags = const [],
+    this.coverImageUrl,
+    this.likeCount = 0,
+    this.commentCount = 0,
+    this.viewCount = 0,
+    this.isPublished = true,
     this.isFavorite = false,
     this.progressPercent = 0,
     this.coverColors = const ['#5B5BD6', '#9B5DE5'],
@@ -28,6 +38,16 @@ class Story {
   final int readingMinutes;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String authorId;
+  final String authorName;
+  final String? authorPhoto;
+  final bool isAnonymous;
+  final List<String> tags;
+  final String? coverImageUrl;
+  final int likeCount;
+  final int commentCount;
+  final int viewCount;
+  final bool isPublished;
   final bool isFavorite;
   final int progressPercent;
   final List<String> coverColors;
@@ -43,6 +63,16 @@ class Story {
     int? readingMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? authorId,
+    String? authorName,
+    String? authorPhoto,
+    bool? isAnonymous,
+    List<String>? tags,
+    String? coverImageUrl,
+    int? likeCount,
+    int? commentCount,
+    int? viewCount,
+    bool? isPublished,
     bool? isFavorite,
     int? progressPercent,
     List<String>? coverColors,
@@ -58,6 +88,16 @@ class Story {
       readingMinutes: readingMinutes ?? this.readingMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      authorId: authorId ?? this.authorId,
+      authorName: authorName ?? this.authorName,
+      authorPhoto: authorPhoto ?? this.authorPhoto,
+      isAnonymous: isAnonymous ?? this.isAnonymous,
+      tags: tags ?? this.tags,
+      coverImageUrl: coverImageUrl ?? this.coverImageUrl,
+      likeCount: likeCount ?? this.likeCount,
+      commentCount: commentCount ?? this.commentCount,
+      viewCount: viewCount ?? this.viewCount,
+      isPublished: isPublished ?? this.isPublished,
       isFavorite: isFavorite ?? this.isFavorite,
       progressPercent: progressPercent ?? this.progressPercent,
       coverColors: coverColors ?? this.coverColors,
@@ -68,6 +108,7 @@ class Story {
     'id': id,
     'title': title,
     'author': author,
+    'authorName': authorName.isEmpty ? author : authorName,
     'category': category,
     'excerpt': excerpt,
     'content': content,
@@ -75,6 +116,15 @@ class Story {
     'readingMinutes': readingMinutes,
     'createdAt': createdAt.toIso8601String(),
     'updatedAt': updatedAt.toIso8601String(),
+    'authorId': authorId,
+    'authorPhoto': authorPhoto,
+    'isAnonymous': isAnonymous,
+    'tags': tags,
+    'coverImageUrl': coverImageUrl,
+    'likeCount': likeCount,
+    'commentCount': commentCount,
+    'viewCount': viewCount,
+    'isPublished': isPublished,
     'isFavorite': isFavorite,
     'progressPercent': progressPercent,
     'coverColors': coverColors,
@@ -94,12 +144,31 @@ class Story {
     final coverColors = json['coverColors'];
     final normalizedProgress = (json['progressPercent'] as num?)?.toInt() ?? 0;
 
+    final tags = <String>[];
+    final rawTags = json['tags'];
+    if (rawTags is List) {
+      for (final rawTag in rawTags) {
+        if (rawTag is String) {
+          final tag = rawTag.trim().toLowerCase();
+          if (tag.isNotEmpty) {
+            tags.add(tag);
+          }
+        }
+      }
+    }
+
+    final author = json['author'] as String? ?? json['authorName'] as String? ?? 'Unknown author';
+    final authorName = (json['authorName'] as String?)?.trim().isNotEmpty == true
+        ? json['authorName'] as String
+        : author;
+    final authorId = json['authorId'] as String? ?? '';
+
     return Story(
       id:
           json['id'] as String? ??
           DateTime.now().microsecondsSinceEpoch.toString(),
       title: json['title'] as String? ?? 'Untitled story',
-      author: json['author'] as String? ?? 'Unknown author',
+      author: author,
       category: json['category'] as String? ?? 'General',
       excerpt: json['excerpt'] as String? ?? content,
       content: content,
@@ -107,6 +176,16 @@ class Story {
       readingMinutes: (json['readingMinutes'] as num?)?.toInt() ?? 1,
       createdAt: _parseDate(json['createdAt']),
       updatedAt: _parseDate(json['updatedAt']),
+      authorId: authorId,
+      authorName: authorName,
+      authorPhoto: json['authorPhoto'] as String?,
+      isAnonymous: json['isAnonymous'] as bool? ?? false,
+      tags: tags,
+      coverImageUrl: json['coverImageUrl'] as String?,
+      likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
+      commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,
+      viewCount: (json['viewCount'] as num?)?.toInt() ?? 0,
+      isPublished: json['isPublished'] as bool? ?? true,
       isFavorite: json['isFavorite'] as bool? ?? false,
       progressPercent: normalizedProgress.clamp(0, 100),
       coverColors: coverColors is List
