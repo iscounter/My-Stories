@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 const APP_NAME = 'StoryShare';
-const APP_BASE_URL = 'https://example.com';
+const APP_BASE_URL = 'https://zerotech.alwaysdata.net/app/';
 const DB_PATH = __DIR__ . '/data/storyshare.db';
 const BACKUP_DIR = __DIR__ . '/backup';
 const TOKEN_SECRET = 'storyshare-dev-secret-change-me';

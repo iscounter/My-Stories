@@ -61,7 +61,6 @@ jobs:
   build:
     name: Build ${{ matrix.name }}
     needs: validate
-    if: github.event_name != 'pull_request' || matrix.platform == 'windows'
     strategy:
       fail-fast: false
       matrix:
@@ -132,9 +131,11 @@ jobs:
         run: flutter pub get
 
       - name: Build debug application
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
         run: ${{ matrix.command }}
 
       - name: Upload debug application
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
