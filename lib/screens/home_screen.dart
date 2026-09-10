@@ -157,7 +157,7 @@ class _HomeScreenState extends State<HomeScreen> {
             borderRadius: BorderRadius.circular(17),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF4F46E5).withOpacity(0.28),
+                color: const Color(0xFF4F46E5).withValues(alpha: 0.28),
                 blurRadius: 18,
                 offset: const Offset(0, 8),
               ),
@@ -439,7 +439,7 @@ class StoryCard extends StatelessWidget {
                       padding: const EdgeInsets.all(15),
                       child: Icon(
                         _categoryIcon(story.category),
-                        color: Colors.white.withOpacity(0.9),
+                        color: Colors.white.withValues(alpha: 0.9),
                         size: 31,
                       ),
                     ),
@@ -455,7 +455,7 @@ class StoryCard extends StatelessWidget {
                             : Icons.favorite_border_rounded,
                         color: story.isFavorite
                             ? Colors.white
-                            : Colors.white.withOpacity(0.88),
+                            : Colors.white.withValues(alpha: 0.88),
                       ),
                     ),
                   ),

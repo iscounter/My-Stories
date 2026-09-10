@@ -47,8 +47,9 @@ void main() {
     await repository.upsertStory(story);
     final loaded = await repository.loadStories();
 
-    expect(loaded, hasLength(1));
-    expect(loaded.first.id, story.id);
-    expect(loaded.first.isFavorite, isFalse);
+    expect(loaded, hasLength(StorySeed.all().length + 1));
+    final loadedStory = loaded.firstWhere((item) => item.id == story.id);
+    expect(loadedStory.title, story.title);
+    expect(loadedStory.isFavorite, isFalse);
   });
 }

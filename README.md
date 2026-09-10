@@ -25,7 +25,7 @@ flutter run
 ```bash
 flutter analyze
 flutter test
-flutter build apk
+flutter build apk --debug
 ```
 
 The app stores library data locally in the platform's shared preferences. Seeded stories are used when no saved library exists.

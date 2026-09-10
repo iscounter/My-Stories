@@ -95,7 +95,7 @@ class _StoryFormScreenState extends State<StoryFormScreen> {
               paragraphs: paragraphs,
               readingMinutes: int.parse(_minutesController.text),
               updatedAt: now,
-              coverColors: _coverColors(_category),
+              coverColors: _coverHexColors(_category),
             );
 
     await widget.repository.upsertStory(updated);
@@ -144,7 +144,7 @@ class _StoryFormScreenState extends State<StoryFormScreen> {
               padding: const EdgeInsets.all(22),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: _coverColors(_category).map(_color).toList(),
+                  colors: _coverColors(_category),
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
@@ -199,7 +199,7 @@ class _StoryFormScreenState extends State<StoryFormScreen> {
                 _FieldLabel(label: 'Category'),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<String>(
-                  value: _categories.contains(_category)
+                  initialValue: _categories.contains(_category)
                       ? _category
                       : _categories.first,
                   decoration: _inputDecoration('Choose a genre'),
@@ -224,8 +224,9 @@ class _StoryFormScreenState extends State<StoryFormScreen> {
                   decoration: _inputDecoration('Minutes', suffix: 'min'),
                   validator: (value) {
                     final minutes = int.tryParse(value ?? '');
-                    if (minutes == null || minutes < 1)
+                    if (minutes == null || minutes < 1) {
                       return 'Enter at least 1 minute';
+                    }
                     return null;
                   },
                 ),
@@ -254,8 +255,9 @@ class _StoryFormScreenState extends State<StoryFormScreen> {
                     'Write your story here. Separate paragraphs with a blank line.',
                   ),
                   validator: (value) {
-                    if (value == null || value.trim().isEmpty)
+                    if (value == null || value.trim().isEmpty) {
                       return 'Please add story content';
+                    }
                     if (value.trim().split(RegExp(r'\s+')).length < 20) {
                       return 'Please add a little more content';
                     }
@@ -288,15 +290,21 @@ class _StoryFormScreenState extends State<StoryFormScreen> {
         ),
       );
 
-  static List<Color> _coverColors(String category) =>
+  static List<String> _coverHexColors(String category) =>
       switch (category.toLowerCase()) {
-        'science fiction' => const [Color(0xFF17233F), Color(0xFF5B5BD6)],
-        'adventure' => const [Color(0xFF0F766E), Color(0xFFF59E0B)],
-        'mystery' => const [Color(0xFF7C2D12), Color(0xFFF97316)],
-        'fantasy' => const [Color(0xFF312E81), Color(0xFFDB2777)],
-        'romance' => const [Color(0xFF831843), Color(0xFFEC4899)],
-        _ => const [Color(0xFF4F46E5), Color(0xFF9333EA)],
+        'science fiction' => const ['#17233F', '#5B5BD6'],
+        'adventure' => const ['#0F766E', '#F59E0B'],
+        'mystery' => const ['#7C2D12', '#F97316'],
+        'fantasy' => const ['#312E81', '#DB2777'],
+        'romance' => const ['#831843', '#EC4899'],
+        _ => const ['#4F46E5', '#9333EA'],
       };
+
+  static List<Color> _coverColors(String category) =>
+      _coverHexColors(category).map(_color).toList();
+
+  static Color _color(String value) =>
+      Color(int.parse(value.replaceFirst('#', '0xFF')));
 
   static IconData _categoryIcon(String category) =>
       switch (category.toLowerCase()) {
