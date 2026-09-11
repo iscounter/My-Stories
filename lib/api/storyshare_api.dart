@@ -472,24 +472,14 @@ class StoryApiModel {
   final DateTime createdAt;
   final DateTime updatedAt;
 
-  factory StoryApiModel.fromJson(Map<String, dynamic> json) {
-    final rawParagraphs = json['paragraphs'];
-    final paragraphs = rawParagraphs is String
-      ? ((jsonDecode(rawParagraphs) as List?) ?? const [])
-          .whereType<String>()
-          .toList()
-      : rawParagraphs is List
-      ? rawParagraphs.whereType<String>().toList()
-      : <String>[];
+  static List<String> _decodeStringList(dynamic value) {
+    final decoded = value is String ? jsonDecode(value) : value;
+    return decoded is List ? decoded.whereType<String>().toList() : const [];
+  }
 
-    final rawTags = json['tags'];
-    final tags = rawTags is String
-      ? ((jsonDecode(rawTags) as List?) ?? const [])
-          .whereType<String>()
-          .toList()
-      : rawTags is List
-      ? rawTags.whereType<String>().toList()
-      : <String>[];
+  factory StoryApiModel.fromJson(Map<String, dynamic> json) {
+    final paragraphs = _decodeStringList(json['paragraphs']);
+    final tags = _decodeStringList(json['tags']);
 
     return StoryApiModel(
       id: json['id'] as String? ?? '',
