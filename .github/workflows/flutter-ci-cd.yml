@@ -52,7 +52,7 @@ jobs:
 
       - name: Upload coverage
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: flutter-coverage
           path: coverage/lcov.info
@@ -145,7 +145,7 @@ jobs:
 
       - name: Upload debug application
         if: github.event_name != 'pull_request' || matrix.platform == 'windows'
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.artifact }}
           path: ${{ matrix.path }}

@@ -5,8 +5,8 @@ import 'package:my_stories/core/config/app_config.dart';
 
 class StoryShareApi {
   StoryShareApi({String? baseUrl, String? authToken})
-      : _baseUrl = baseUrl ?? AppConfig.apiBaseUrl + AppConfig.apiPrefix,
-        _authToken = authToken;
+    : _baseUrl = baseUrl ?? AppConfig.apiBaseUrl + AppConfig.apiPrefix,
+      _authToken = authToken;
 
   final String _baseUrl;
   final String? _authToken;
