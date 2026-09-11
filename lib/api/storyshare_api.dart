@@ -473,8 +473,17 @@ class StoryApiModel {
   final DateTime updatedAt;
 
   static List<String> _decodeStringList(dynamic value) {
-    final decoded = value is String ? jsonDecode(value) : value;
-    return decoded is List ? decoded.whereType<String>().toList() : const [];
+    if (value is String) {
+      final decoded = jsonDecode(value);
+      if (decoded is List) {
+        return decoded.whereType<String>().toList();
+      }
+      return const [];
+    }
+    if (value is List) {
+      return value.whereType<String>().toList();
+    }
+    return const [];
   }
 
   factory StoryApiModel.fromJson(Map<String, dynamic> json) {
