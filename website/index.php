@@ -31,7 +31,11 @@ function readJsonBody(): array
 function parseSegments(): array
 {
     $uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?? '/';
-    $normalized = str_replace('/webstore', '', $uri);
+    $normalized = str_replace(
+        ['/webstore', '/website', '/app/index.php', '/index.php'],
+        '',
+        $uri
+    );
     $segments = array_values(array_filter(explode('/', $normalized), static fn ($segment) => $segment !== '' && $segment !== '/'));
     return $segments;
 }
@@ -181,7 +185,7 @@ try {
         jsonResponse(200, ['message' => 'Profile updated successfully.', 'user' => $updatedUser]);
     }
 
-    if ($route === 'stories' && $method === 'GET') {
+    if ($route === 'stories' && $resourceId === null && $method === 'GET') {
         $limit = min(50, max(1, (int) ($_GET['limit'] ?? 20)));
         $where = 'WHERE deleted_at IS NULL AND is_published = 1';
         $params = [];
@@ -499,6 +503,95 @@ try {
         jsonResponse(201, ['message' => 'Report submitted successfully.']);
     }
 
+    if ($route === 'users' && $method === 'DELETE' && $resourceId) {
+        if ((string) $currentUser['id'] !== $resourceId && $currentUser['email'] !== 'admin@example.com') {
+            throw new RuntimeException('Forbidden.', 403);
+        }
+        $target = $db->fetchOne('SELECT * FROM users WHERE id = :id AND deleted_at IS NULL LIMIT 1', ['id' => $resourceId]);
+        if (!$target) {
+            throw new RuntimeException('User not found.', 404);
+        }
+        $db->execute('UPDATE users SET deleted_at = :deleted_at, updated_at = :updated_at WHERE id = :id', ['deleted_at' => gmdate(DATE_ATOM), 'updated_at' => gmdate(DATE_ATOM), 'id' => $resourceId]);
+        Backup::save('users', ['id' => $resourceId, 'deletedAt' => gmdate(DATE_ATOM)], $resourceId, 'soft-delete');
+        jsonResponse(200, ['message' => 'User account archived successfully.']);
+    }
+
+    if ($route === 'stories' && $resourceId && $segments[2] === 'view' && $method === 'POST') {
+        $story = $db->fetchOne('SELECT * FROM stories WHERE id = :id AND deleted_at IS NULL LIMIT 1', ['id' => $resourceId]);
+        if (!$story) {
+            throw new RuntimeException('Story not found.', 404);
+        }
+        $db->execute('UPDATE stories SET view_count = view_count + 1, updated_at = :updated_at WHERE id = :id', ['updated_at' => gmdate(DATE_ATOM), 'id' => $resourceId]);
+        jsonResponse(200, ['message' => 'View recorded.']);
+    }
+
+    if ($route === 'stories' && $resourceId && $segments[2] === 'trend' && $method === 'GET') {
+        $story = $db->fetchOne('SELECT * FROM stories WHERE id = :id AND deleted_at IS NULL LIMIT 1', ['id' => $resourceId]);
+        if (!$story) {
+            throw new RuntimeException('Story not found.', 404);
+        }
+        $trendScore = (float) $story['like_count'] * 3 + (float) $story['comment_count'] * 2 + (float) $story['view_count'] * 0.1;
+        $db->execute('UPDATE stories SET trend_score = :trend_score, updated_at = :updated_at WHERE id = :id', ['trend_score' => $trendScore, 'updated_at' => gmdate(DATE_ATOM), 'id' => $resourceId]);
+        jsonResponse(200, ['trendScore' => $trendScore]);
+    }
+
+    if ($route === 'stories' && $method === 'GET' && isset($_GET['trending'])) {
+        $limit = min(50, max(1, (int) ($_GET['limit'] ?? 20)));
+        $stories = $db->fetchAll('SELECT * FROM stories WHERE deleted_at IS NULL AND is_published = 1 ORDER BY trend_score DESC, created_at DESC LIMIT :limit', ['limit' => $limit]);
+        jsonResponse(200, ['stories' => $stories]);
+    }
+
+    if ($route === 'stories' && $method === 'GET' && isset($_GET['following'])) {
+        $followingRows = $db->fetchAll(
+            'SELECT following_id FROM follows WHERE follower_id = :follower_id',
+            ['follower_id' => $userId]
+        );
+        $followingIds = array_column($followingRows, 'following_id');
+        if (empty($followingIds)) {
+            jsonResponse(200, ['stories' => []]);
+        }
+        $placeholders = implode(',', array_fill(0, count($followingIds), '?'));
+        $stmt = $db->getPdo()->prepare("SELECT * FROM stories WHERE deleted_at IS NULL AND is_published = 1 AND author_id IN ({$placeholders}) ORDER BY created_at DESC LIMIT 50");
+        foreach ($followingIds as $i => $fid) {
+            $stmt->bindValue($i + 1, $fid);
+        }
+        $stmt->execute();
+        $stories = $stmt->fetchAll();
+        jsonResponse(200, ['stories' => $stories]);
+    }
+
+    if ($route === 'comments' && $method === 'DELETE' && $resourceId) {
+        $comment = $db->fetchOne('SELECT * FROM story_comments WHERE id = :id LIMIT 1', ['id' => $resourceId]);
+        if (!$comment) {
+            throw new RuntimeException('Comment not found.', 404);
+        }
+        if ((string) $comment['author_id'] !== $userId && $currentUser['email'] !== 'admin@example.com') {
+            throw new RuntimeException('Only the author or admin can delete this comment.', 403);
+        }
+        $db->execute('UPDATE story_comments SET is_deleted = 1, deleted_at = :deleted_at WHERE id = :id', ['deleted_at' => gmdate(DATE_ATOM), 'id' => $resourceId]);
+        Backup::save('story_comments', ['id' => $resourceId, 'deletedAt' => gmdate(DATE_ATOM)], $resourceId, 'soft-delete');
+        jsonResponse(200, ['message' => 'Comment deleted.']);
+    }
+
+    if ($route === 'follow' && $method === 'GET') {
+        $following = $db->fetchAll('SELECT following_id FROM follows WHERE follower_id = :follower_id', ['follower_id' => $userId]);
+        $followers = $db->fetchAll('SELECT follower_id FROM follows WHERE following_id = :following_id', ['following_id' => $userId]);
+        jsonResponse(200, [
+            'following' => array_column($following, 'following_id'),
+            'followers' => array_column($followers, 'follower_id'),
+        ]);
+    }
+
+    if ($route === 'notifications' && $method === 'DELETE') {
+        $notificationId = trim((string) ($payload['notificationId'] ?? ''));
+        if ($notificationId !== '') {
+            $db->execute('DELETE FROM notifications WHERE id = :id AND recipient_id = :recipient_id', ['id' => $notificationId, 'recipient_id' => $userId]);
+        } else {
+            $db->execute('DELETE FROM notifications WHERE recipient_id = :recipient_id', ['recipient_id' => $userId]);
+        }
+        jsonResponse(200, ['message' => 'Notifications cleared.']);
+    }
+
     if ($route === 'admin' && $method === 'GET') {
         $admin->requireAdmin($currentUser);
         $dashboard = $admin->dashboard();
@@ -516,6 +609,18 @@ try {
         $status = trim((string) ($payload['status'] ?? ''));
         $updated = $admin->resolveReport($segments[2], $status);
         jsonResponse(200, ['message' => 'Report status updated.', 'report' => $updated]);
+    }
+
+    if ($route === 'admin' && $segments[1] === 'users' && $method === 'GET') {
+        $admin->requireAdmin($currentUser);
+        $users = $db->fetchAll('SELECT id, email, username, display_name, bio, photo_url, follower_count, following_count, story_count, created_at, updated_at, status, deleted_at FROM users WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 100');
+        jsonResponse(200, ['users' => $users]);
+    }
+
+    if ($route === 'admin' && $segments[1] === 'stories' && $method === 'GET') {
+        $admin->requireAdmin($currentUser);
+        $stories = $db->fetchAll('SELECT * FROM stories WHERE deleted_at IS NULL ORDER BY created_at DESC LIMIT 100');
+        jsonResponse(200, ['stories' => $stories]);
     }
 
     throw new RuntimeException('Endpoint not found.', 404);

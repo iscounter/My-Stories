@@ -1,10 +1,12 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
+import 'package:my_stories/core/config/app_config.dart';
 
 class StoryShareApi {
   StoryShareApi({String? baseUrl, String? authToken})
-    : _baseUrl = baseUrl ?? 'https://zerotech.alwaysdata.net/app/webstore',
-      _authToken = authToken;
+      : _baseUrl = baseUrl ?? AppConfig.apiBaseUrl + AppConfig.apiPrefix,
+        _authToken = authToken;
 
   final String _baseUrl;
   final String? _authToken;
@@ -25,8 +27,11 @@ class StoryShareApi {
     Map<String, dynamic>? body,
     Map<String, String>? query,
   }) async {
+    final normalizedPath = path.startsWith('/webstore/')
+        ? path.substring('/webstore'.length)
+        : path;
     final uri = Uri.parse(
-      _baseUrl + path,
+      '$_baseUrl$normalizedPath',
     ).replace(queryParameters: query ?? const {});
 
     http.Response response;
@@ -468,13 +473,23 @@ class StoryApiModel {
   final DateTime updatedAt;
 
   factory StoryApiModel.fromJson(Map<String, dynamic> json) {
-    final paragraphs = (json['paragraphs'] is List)
-        ? (json['paragraphs'] as List).whereType<String>().toList()
-        : <String>[];
+    final rawParagraphs = json['paragraphs'];
+    final paragraphs = rawParagraphs is String
+      ? ((jsonDecode(rawParagraphs) as List?) ?? const [])
+          .whereType<String>()
+          .toList()
+      : rawParagraphs is List
+      ? rawParagraphs.whereType<String>().toList()
+      : <String>[];
 
-    final tags = (json['tags'] is List)
-        ? (json['tags'] as List).whereType<String>().toList()
-        : <String>[];
+    final rawTags = json['tags'];
+    final tags = rawTags is String
+      ? ((jsonDecode(rawTags) as List?) ?? const [])
+          .whereType<String>()
+          .toList()
+      : rawTags is List
+      ? rawTags.whereType<String>().toList()
+      : <String>[];
 
     return StoryApiModel(
       id: json['id'] as String? ?? '',
