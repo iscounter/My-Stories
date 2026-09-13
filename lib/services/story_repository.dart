@@ -34,6 +34,25 @@ class StoryRepository {
     }
   }
 
+  Future<List<Story>> searchStories(String query) async {
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) return loadStories();
+
+    final stories = await loadStories();
+    final lowered = trimmed.toLowerCase();
+    return stories.where((story) {
+      final text = [
+        story.title,
+        story.author,
+        story.category,
+        story.excerpt,
+        story.content,
+        ...story.tags,
+      ].join(' ').toLowerCase();
+      return text.contains(lowered);
+    }).toList();
+  }
+
   Future<List<Story>> saveStories(List<Story> stories) async {
     final orderedStories = [...stories]
       ..sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
