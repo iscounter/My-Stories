@@ -1,0 +1,152 @@
+name: Flutter CI/CD
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: flutter-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate Flutter app
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test --coverage
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: flutter-coverage
+          path: coverage/lcov.info
+          if-no-files-found: ignore
+
+  build:
+    name: Build ${{ matrix.name }}
+    needs: validate
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Android APK
+            platform: android
+            runner: ubuntu-latest
+            command: flutter build apk --debug
+            artifact: my-stories-android-debug-apk
+            path: build/app/outputs/flutter-apk/app-debug.apk
+          - name: iOS app
+            platform: ios
+            runner: macos-latest
+            command: flutter build ios --debug --no-codesign
+            artifact: my-stories-ios-debug-app
+            path: build/ios/iphoneos/Runner.app
+          - name: Linux app
+            platform: linux
+            runner: ubuntu-latest
+            command: flutter build linux --debug
+            artifact: my-stories-linux-debug-app
+            path: build/linux/x64/debug/bundle
+          - name: macOS app
+            platform: macos
+            runner: macos-latest
+            command: flutter build macos --debug
+            artifact: my-stories-macos-debug-app
+            path: build/macos/Build/Products/Debug
+          - name: Web app
+            platform: web
+            runner: ubuntu-latest
+            command: flutter build web --debug
+            artifact: my-stories-web-debug-app
+            path: build/web
+          - name: Windows app
+            platform: windows
+            runner: windows-2022
+            command: flutter build windows --debug
+            artifact: my-stories-windows-debug-app
+            path: build/windows/x64/runner/Debug
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Checkout
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
+        uses: actions/checkout@v5
+
+      - name: Set up Java
+        if: (github.event_name != 'pull_request' || matrix.platform == 'windows') && matrix.platform == 'android'
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Flutter
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.5'
+          channel: stable
+          cache: true
+
+      - name: Install Linux build dependencies
+        if: (github.event_name != 'pull_request' || matrix.platform == 'windows') && matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libblkid-dev liblzma-dev
+
+      - name: Install dependencies
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
+        run: flutter pub get
+
+      - name: Configure Windows build environment
+        if: matrix.platform == 'windows'
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force build/windows -ErrorAction SilentlyContinue
+
+      - name: Build debug application
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
+        run: ${{ matrix.command }}
+
+      - name: Upload debug application
+        if: github.event_name != 'pull_request' || matrix.platform == 'windows'
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.path }}
+          if-no-files-found: error
