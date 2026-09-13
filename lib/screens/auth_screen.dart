@@ -105,10 +105,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 24),
                     Text(
                       _isLogin ? 'Welcome back' : 'Create your account',
-                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF17152B),
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF17152B),
+                          ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -124,7 +125,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       _AuthField(
                         controller: _displayNameController,
                         label: 'Display name',
-                        validator: (value) => (value == null || value.trim().isEmpty)
+                        validator: (value) =>
+                            (value == null || value.trim().isEmpty)
                             ? 'Please enter a display name.'
                             : null,
                       ),
@@ -132,7 +134,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       _AuthField(
                         controller: _usernameController,
                         label: 'Username',
-                        validator: (value) => (value == null || value.trim().length < 3)
+                        validator: (value) =>
+                            (value == null || value.trim().length < 3)
                             ? 'Use at least 3 characters.'
                             : null,
                       ),

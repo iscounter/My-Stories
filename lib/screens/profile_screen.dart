@@ -16,7 +16,8 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = authRepository.currentUser ??
+    final user =
+        authRepository.currentUser ??
         UserProfile(
           id: 'local_user',
           email: 'reader@example.com',
@@ -86,16 +87,14 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         Text(
                           user.displayName,
-                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w800),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '@${user.username}',
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: const Color(0xFF77748A),
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(color: const Color(0xFF77748A)),
                         ),
                       ],
                     ),
@@ -106,9 +105,9 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 18),
             Text(
               user.bio,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: const Color(0xFF464358),
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: const Color(0xFF464358)),
             ),
             const SizedBox(height: 26),
             const Divider(),
@@ -146,16 +145,16 @@ class _Stat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 4),
         Text(
           label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: const Color(0xFF77748A),
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: const Color(0xFF77748A)),
         ),
       ],
     );

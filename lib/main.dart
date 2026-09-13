@@ -9,10 +9,12 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final authRepository = await AuthRepository.initialize();
   final storyRepository = await StoryRepository.initialize();
-  runApp(StoryShareApp(
-    authRepository: authRepository,
-    storyRepository: storyRepository,
-  ));
+  runApp(
+    StoryShareApp(
+      authRepository: authRepository,
+      storyRepository: storyRepository,
+    ),
+  );
 }
 
 class StoryShareApp extends StatelessWidget {
@@ -86,7 +88,8 @@ class _StoryShareRootState extends State<StoryShareRoot> {
       body: IndexedStack(index: _selectedIndex, children: screens),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
-        onDestinationSelected: (index) => setState(() => _selectedIndex = index),
+        onDestinationSelected: (index) =>
+            setState(() => _selectedIndex = index),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.home_rounded), label: 'Home'),
           NavigationDestination(

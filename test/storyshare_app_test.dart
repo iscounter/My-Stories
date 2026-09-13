@@ -40,7 +40,9 @@ void main() {
       category: 'Fantasy',
       excerpt: 'A memory in the night sky.',
       content: 'A memory in the night sky with enough story text to be valid.',
-      paragraphs: const ['A memory in the night sky with enough story text to be valid.'],
+      paragraphs: const [
+        'A memory in the night sky with enough story text to be valid.',
+      ],
       readingMinutes: 2,
       createdAt: DateTime(2026, 9, 13),
       updatedAt: DateTime(2026, 9, 13),
